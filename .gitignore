@@ -1,5 +1,9 @@
 # Prerequisites
 *.d
+Debug
+Release
+*.sdf
+*.suo
 
 # Compiled Object files
 *.slo
