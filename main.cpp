@@ -6,6 +6,12 @@
 #include <iostream>
 #include <time.h>
 
+// 排除特定目录
+inline bool IsSpecialFolder(const char *folder_name)
+{
+	return '.' == folder_name[0] || strcmp(folder_name, "tmp");
+}
+
 // 如果当前目录为空，则删除空目录
 bool IsEmptyFolder(const std::string &folder_path, int &count)
 {
@@ -24,13 +30,18 @@ bool IsEmptyFolder(const std::string &folder_path, int &count)
 					continue;
 				if (FILE_ATTRIBUTE_DIRECTORY & fileinfo.attrib) //子目录
 				{
-					std::string child = folder_path + "\\" + fileinfo.name;
-					if (IsEmptyFolder(child, count)){
-						BOOL b = RemoveDirectory(child.c_str());
-						if (FALSE == b) ret = false;
-						else ++count;
-						printf("删除\"%s\"%s\n", child.c_str(), b ? "成功" : "失败");
-					}else ret = false;
+					if(IsSpecialFolder(fileinfo.name)){
+						ret = false;
+					}else
+					{
+						std::string child = folder_path + "\\" + fileinfo.name;
+						if (IsEmptyFolder(child, count)){
+							BOOL b = RemoveDirectory(child.c_str());
+							if (FALSE == b) ret = false;
+							else ++count;
+							printf("删除\"%s\"%s\n", child.c_str(), b ? "成功" : "失败");
+						}else ret = false;
+					}
 				}else if (ret) // 非空目录
 				{
 					ret = false;
@@ -66,7 +77,8 @@ int main()
 			_strlwr(path);
 			if (path[0] == 'q' && strlen(path) == 1) // 输入q退出
 				return -1;
-			if (!('a' <= path[0] && path[0] <= 'z'))
+			bool a_z = 'a' <= path[0] && path[0] <= 'z';// 第一个字节是否盘符
+			if ( !a_z || ( a_z && (strlen(path)==1 || path[1]!=':') ) )
 				folder.append("\\").append(path);
 			else
 				folder = path;
